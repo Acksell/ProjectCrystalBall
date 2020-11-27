@@ -25,7 +25,7 @@ function [A, bfunc]=getLinearSystem(R, dr, D, cooling_func)
     boundary_function = getBoundaryFunc(cooling_func);
     function [b]=b(t)
         b=zeros(N,1);
-        b(end)=D*boundary_function(t)*(R+dr)^2/(R^2*dr^2);
+        b(end)=D*boundary_function(t)*(R+dr/2)^2/(R^2*dr^2);
     end
     bfunc=@b;
 end
