@@ -1,7 +1,7 @@
 % Gets the matrix A and the function b(t) for the linear system
 % du/dt = Au + b(t)
 % In this case the system is a crystal ball being cooled.
-function [A, bfunc]=getLinearSystem(R, dr, D, cooling_func)
+function [A, getbfunc]=getLinearSystem(R, dr, D)
     N=R/dr; % between dr and R-dr, add r=0 to diags after.
     rspace=linspace(0, R-dr, N);
 
@@ -21,11 +21,17 @@ function [A, bfunc]=getLinearSystem(R, dr, D, cooling_func)
 %     A(1,2)=6;
     A=D*A/(dr^2); % scale by the common factors.
     
-    % Dirichlet at r=R is responsible for the b-term in the linear system.
-    boundary_function = getBoundaryFunc(cooling_func);
-    function [b]=b(t)
-        b=zeros(N,1);
-        b(end)=D*boundary_function(t)*(R+dr/2)^2/(R^2*dr^2);
+
+    % return a function which abstracts the translation from cooling
+    % function to boundary condition to the b term in the linear system.
+    function [bfunc]=getbfunction(cooling_func)
+        % Dirichlet at r=R is responsible for the b-term in the linear system.
+        boundary_function = getBoundaryFunc(cooling_func);
+        function [b]=b(t)
+            b=zeros(N,1);
+            b(end)=D*boundary_function(t)*(R+dr/2)^2/(R^2*dr^2);
+        end
+        bfunc=@b;
     end
-    bfunc=@b;
+    getbfunc=@getbfunction;
 end

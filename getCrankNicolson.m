@@ -1,10 +1,11 @@
-% 1D Crank-Nicolson
-function [stepfunc]=getCrankNicolson(dt, A, bfunc)
+% Returns a function which takes a step forward with Crank-Nicolson.
+function [stepfunc]=getCrankNicolson(dt, A, bfunc, t_0)
     dim=length(A); % get dimension for initializing identity matrices.
     
     sparse_left = (speye(dim) - A*dt/2);
     sparse_right = speye(dim) + A*dt/2;
-    t=0;
+
+    t=t_0;
     function [time, u_new]=StepCrankNicolson(u)
         % solve Crank-Nicolson sparse linear system with matlab's backslash.
         u_new = sparse_left\(sparse_right*u + dt*(bfunc(t) + bfunc(t+dt))/2);
