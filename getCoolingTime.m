@@ -29,9 +29,14 @@ tspace=zeros(10,1);
 m=1;
 boundary = getBoundaryFunc(cooling_func);
 while max(u) > T_target
+    if m > 1
+        prev_time = time;
+        prev_max_u = max(u);
+    end
     [time, u] = StepCrankNicolson(u);
     % store solution and add the boundary condition U_0(t) at r=R
-    u_store(:,m) = [u; boundary(time)];
+    % Don't store values unless needed (to run faster)
+    %u_store(:,m) = [u; boundary(time)];
     tspace(m)=time;
     m=m+1;
     if mod(m,50000)==0 % print progress 
@@ -39,12 +44,18 @@ while max(u) > T_target
     end
 end
 
+% Interpolate last step linearly to reach the target temperature exactly
+last_step_slope = (max(u) - prev_max_u) / dt;
+time_diff_to_target = (T_target - prev_max_u)/last_step_slope;
+
 rspace=linspace(0,R, R/dr+1);
 tspace=[0; tspace];
 u_init=[u_init; boundary(0)];
 u_store=[u_init u_store];
 
-coolingTime = time;
+% Final cooling time to target temperature
+coolingTime = prev_time + time_diff_to_target;
+% Temperature of last step (not target temperature)
 finalTemp = max(u);
 
 end
