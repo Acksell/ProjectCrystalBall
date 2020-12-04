@@ -54,7 +54,7 @@ tspace=tspace(1:end-1); % remove last column since u wasnt calculated for that.
 rspace=linspace(0,R, R/dr+1);
 u_init=[u_init; boundary(0)];
 % u_store=[u_init u_store];
-du_dr_store=[zeros(N,1) du_dr];
+du_dr_store=[zeros(N-1,1) du_dr_store];
 
 %% Get a good estimate of the best cooling function
 min_tmax=100; % *Probably* won't find a tmax lower than this.
@@ -136,8 +136,16 @@ end
 figure
 % plot(tspace, du_dr)
 plot(tspace, max(abs(du_dr_store)))
-title("u^{\infty}_r", 'FontSize',14)
-xlabel("time",'FontSize',14)
+title("u^{\infty}_r: Max gradient over time", 'FontSize',14)
+xlabel("Time",'FontSize',14)
+ylabel('du/dr','FontSize',14)
+%%
+figure
+% plot(tspace, du_dr)
+rspace_index_used = 1:9:100;
+plot(tspace, du_dr_store(rspace_index_used,:))
+title("Gradient du/dr over time for different radii", 'FontSize',14)
+xlabel("Time",'FontSize',14)
 ylabel("du/dr",'FontSize',14)
 %%
 % for my calculated U_0:
