@@ -130,7 +130,45 @@ while max(u) > T_target
     end
     u=u_next;
 end
+%% Solve again with optimal U_0(t) (averaged to avoid jumps) that was found.
+avg_U0 = (U_0(1:end-1)+U_0(2:end))/2;   
+avg_U0 = [980; avg_U0; 20];
+cooling_func_opt=@(t) avg_U0(uint64(round((t+dt)/dt)));
 
+bfunc=getbfunc(cooling_func_opt); % the b(t) term in the linear system Au+b.
+StepCrankNicolson = getCrankNicolson(dt, A, bfunc, t0);
+
+% Initialize u to T_0 everywhere
+u_init=zeros(N,1) + T_0;
+u = u_init;
+
+% Allocate memory for store of solution.
+min_tmax=100; % *Probably* won't find a tmax lower than this.
+M=min_tmax/dt;
+u_store=zeros(N+1,M);
+tspace=zeros(M,1);
+
+% Step forward until max temperature is T_target.
+m=1;
+boundary = getBoundaryFunc(cooling_func_opt);
+du_dr_store=zeros(N,1);
+
+while max(u) > T_target
+    [time, u] = StepCrankNicolson(u);
+    du_dr_store(:,m)=d_dr(u,dr);
+
+    % store solution and add the boundary condition U_0(t) at r=R
+    u_store(:,m) = [u; boundary(time)];
+    m=m+1;
+    tspace(m)=time;
+    if mod(m,5000)==0 % print progress 
+        max(u)
+    end
+end
+
+% Add boundary and initial conditions to solutions.
+tspace=tspace(1:end-1); % remove last column since u wasnt calculated for that.
+rspace=linspace(0,R, R/dr+1);
 
 %% Plots
 figure
@@ -161,12 +199,12 @@ figure
 hold on
 plot(tspace(1:end-1), avg_U0)
 % plot(tspace,U_0)
-% plot(tspace, arrayfun(getBoundaryFunc(cooling_func),tspace))
-plot(tspace, arrayfun(getBoundaryFunc(cooling_func2),tspace))
+plot(tspace, arrayfun(getBoundaryFunc(cooling_func),tspace))
+% plot(tspace, arrayfun(getBoundaryFunc(cooling_func2),tspace))
 plot(tspace, arrayfun(getBoundaryFunc(cooling_func3),tspace))
 
 title("Optimal cooling function U_0(t) over time")
-lgd=legend("Almost optimal", "Exponential, \alpha=3\cdot10^{-3}","Optimal exponential, \alpha=1.98\cdot10^{-4}");
+lgd=legend("Calculated 'optimal'", "Original exponential, \alpha=3\cdot10^{-4}","Optimal exponential, \alpha=1.98\cdot10^{-4}");
 lgd.FontSize = 10;
 xlabel("Time")
 ylabel("Temperature")
