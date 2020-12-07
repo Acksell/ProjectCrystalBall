@@ -66,4 +66,5 @@ xlabel("Time", 'FontSize',14)
 ylabel("r", 'FontSize',14)
 zlabel("Temperature", 'FontSize',14)
 title("Temperature distribution over time", 'FontSize',14)
-
+%%
+animated_u(u_store, R, N+1, dt)
