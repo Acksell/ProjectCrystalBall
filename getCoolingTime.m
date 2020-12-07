@@ -4,13 +4,14 @@ D=4.0*10^(-7);
 R=0.05;
 T_0=980;
 N=R/dr; % dimension of the mesh. No +1 since dirichlet at r=R.
+t0=0;
 
 alpha=3*10^(-4); % just set to two at the moment, play with this.
 cooling_func=@(t) T_0*exp(-alpha*t); % change this when you want a new function.
 
-[A,bfunc]=getLinearSystem(R, dr, D, cooling_func);
-
-StepCrankNicolson = getCrankNicolson(dt, A, bfunc);
+[A,getbfunc]=getLinearSystem(R, dr, D);
+bfunc=getbfunc(cooling_func);
+StepCrankNicolson = getCrankNicolson(dt, A, bfunc, t0);
 
 % initialize u to T_0 everywhere
 u_init=zeros(N,1) + T_0;
